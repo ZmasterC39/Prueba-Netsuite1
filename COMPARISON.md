@@ -30,7 +30,10 @@
 - **Mensajes de error** (`error/TS_CM_ErrorMessages.js`): sin diferencias.【F:AUTOSAFE/error/TS_CM_ErrorMessages.js†L1-L80】【F:CARSEG/error/TS_CM_ErrorMessages.js†L1-L80】
 
 ## Integraciones exclusivas de Carseg
-- El controlador `IntegracionesHunter/HU_TS_ScriptPlataformas_controller.js` orquesta envíos a PX/Telematics: define más de 15 códigos de operación (instalación, desinstalación, renovación, cambio de propietario, etc.), arma el payload con datos de orden, vehículo, coberturas y comandos, y registra el resultado en `customrecord_ts_regis_impulso_plataforma`. No hay equivalente en Autosafe.【F:CARSEG/IntegracionesHunter/HU_TS_ScriptPlataformas_controller.js†L1-L200】
+- **Cobertura funcional**: el controlador `IntegracionesHunter/HU_TS_ScriptPlataformas_controller.js` implementa más de 15 operaciones hacia PX/Telematics (instalación, desinstalación, reinstalación, renovación, mantenimiento/chequeo, venta de servicios y seguros, cambio o actualización de propietario/estado, registrar canal y reconexión). No existe ningún módulo equivalente en Autosafe.【F:CARSEG/IntegracionesHunter/HU_TS_ScriptPlataformas_controller.js†L1-L205】【F:CARSEG/IntegracionesHunter/HU_TS_ScriptPlataformas_controller.js†L474-L739】
+- **Armado de payload y autenticación**: cada envío compone un objeto `PxAdmin` con credenciales (`NetSuite`/`NS*25#01@%j?i`), limpia campos, agrega datos de orden, vehículo, dispositivo, propietario, cobertura, servicios y comandos según la operación, y fija el código de operación PX (`OperacionOrden`) antes de llamar a `sendPXServer`. El método de instalación muestra la estructura típica: obtiene todos los datos de la OT, setea valores segmentados y envía el request.【F:CARSEG/IntegracionesHunter/HU_TS_ScriptPlataformas_controller.js†L51-L108】
+- **Registro y control de reintentos**: antes de enviar crea `customrecord_ts_regis_impulso_plataforma` para trazar el envío, marca `custrecord_ht_ot_pxadminfinalizacion` si PX responde `1` y, si no se finaliza, fuerza el estado de la OT a `4` para evitar seguir avanzando sin confirmación. Este patrón se repite en instalación, desinstalación, modificación y reconexión.【F:CARSEG/IntegracionesHunter/HU_TS_ScriptPlataformas_controller.js†L61-L107】【F:CARSEG/IntegracionesHunter/HU_TS_ScriptPlataformas_controller.js†L165-L205】【F:CARSEG/IntegracionesHunter/HU_TS_ScriptPlataformas_controller.js†L430-L472】【F:CARSEG/IntegracionesHunter/HU_TS_ScriptPlataformas_controller.js†L692-L739】
+- **Ramas específicas por país**: varias operaciones devuelven directamente el payload cuando la nacionalidad es Perú (para depurar o consumir la respuesta de PX) y, en otras subsidiarias, solo devuelven `true/false`. También ajustan el comportamiento de logging y actualización de registros según la bandera `pxadminfinalizacion`.【F:CARSEG/IntegracionesHunter/HU_TS_ScriptPlataformas_controller.js†L110-L158】【F:CARSEG/IntegracionesHunter/HU_TS_ScriptPlataformas_controller.js†L212-L258】【F:CARSEG/IntegracionesHunter/HU_TS_ScriptPlataformas_controller.js†L330-L340】【F:CARSEG/IntegracionesHunter/HU_TS_ScriptPlataformas_controller.js†L364-L380】
 
 ## Diagramas
 ### Flujo comparado de beforeLoad y beforeSubmit
@@ -46,7 +49,7 @@ flowchart TD
         A3 -- Sí --> A7{¿OT sin serie?}
         A7 -- Sí --> A8[Botones ensamble alquiler/custodia/garantía]
         A3 -- No --> A9[Sin botones]
-        A9 --> A10[beforeSubmit no aplica]
+        A9 --> A10[beforeSubmit (no aplica)]
     end
     subgraph Carseg
         B0[beforeLoad] --> B1[Mensajes por estado OS / plataformas]
@@ -54,7 +57,7 @@ flowchart TD
         B2 -- Sí --> B3{Serie/instalaciones/accesorios?}
         B3 -- Sí --> B4[Botón Chequear Orden]
         B2 -- Sí --> B5[Botones ensamble alquiler/custodia/garantía]
-        B0 --> B6[beforeSubmit: valida acción vs estado dispositivo solo Ecuador]
+        B0 --> B6[beforeSubmit: valida acción vs estado dispositivo (solo Ecuador)]
     end
 ```
 
