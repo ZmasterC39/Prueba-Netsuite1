@@ -46,7 +46,7 @@ flowchart TD
         A3 -- Sí --> A7{¿OT sin serie?}
         A7 -- Sí --> A8[Botones ensamble alquiler/custodia/garantía]
         A3 -- No --> A9[Sin botones]
-        A9 --> A10[beforeSubmit (no aplica)]
+        A9 --> A10[beforeSubmit no aplica]
     end
     subgraph Carseg
         B0[beforeLoad] --> B1[Mensajes por estado OS / plataformas]
@@ -54,7 +54,7 @@ flowchart TD
         B2 -- Sí --> B3{Serie/instalaciones/accesorios?}
         B3 -- Sí --> B4[Botón Chequear Orden]
         B2 -- Sí --> B5[Botones ensamble alquiler/custodia/garantía]
-        B0 --> B6[beforeSubmit: valida acción vs estado dispositivo (solo Ecuador)]
+        B0 --> B6[beforeSubmit: valida acción vs estado dispositivo solo Ecuador]
     end
 ```
 
